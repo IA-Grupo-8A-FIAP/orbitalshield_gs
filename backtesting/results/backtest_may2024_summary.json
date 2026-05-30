@@ -1,0 +1,18 @@
+{
+  "test_period": "2024-05-01 \u2192 2024-05-31",
+  "n_records": 720,
+  "f1_macro": 0.8149,
+  "recall_critical": 0.8919,
+  "kp_max": 9.0,
+  "dt_kp_max": "2024-05-11 00:00:00+00:00",
+  "dt_dst_min": "2024-05-11 02:00:00+00:00",
+  "dst_min": -406.0,
+  "antecipacao_h": 240.0,
+  "primeiro_alerta": "2024-05-01 00:00:00+00:00",
+  "alert_distribution": {
+    "CR\u00cdTICO": 303,
+    "ALTO": 196,
+    "MODERADO": 157,
+    "BAIXO": 64
+  }
+}

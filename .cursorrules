@@ -1,0 +1,10 @@
+Projeto: OrbitalShield
+Stack: Python 3.11, XGBoost, Streamlit, SQLite/PostgreSQL, SQLAlchemy, MQTT
+
+Regras críticas:
+- Sempre aplicar shift(1) antes de rolling windows em séries temporais
+- Label do modelo é IPO futuro (t+1h), NUNCA IPO atual
+- OGII é calculado somente em model/predict.py, nunca em features/
+- Test set (maio/2024) nunca é usado para ajuste de parâmetros
+- AMAS é hipótese experimental, nunca afirmar como fato
+- Comentários em português, código em inglês

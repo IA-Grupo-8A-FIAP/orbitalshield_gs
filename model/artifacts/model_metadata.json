@@ -1,0 +1,48 @@
+{
+  "feature_cols": [
+    "kp",
+    "bz_nT",
+    "bz_min_3h",
+    "dst",
+    "ae_index",
+    "southward_duration",
+    "hour_sin",
+    "hour_cos",
+    "solar_wind_speed",
+    "kp_lag_3h",
+    "kp_mean_6h",
+    "kp_x_bz_neg",
+    "amas_factor"
+  ],
+  "label_col": "ipo_future",
+  "ipo_thresholds": {
+    "p25": 0.0305,
+    "p50": 0.0592,
+    "p75": 0.1053
+  },
+  "best_iteration": 399,
+  "best_score": 0.4654679875613904,
+  "xgboost_params": {
+    "n_estimators": 400,
+    "max_depth": 5,
+    "learning_rate": 0.05,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "min_child_weight": 3,
+    "gamma": 0.1,
+    "num_class": 4,
+    "random_state": 42
+  },
+  "val_metrics": {
+    "f1_macro": 0.8185,
+    "recall_critical": 0.8729
+  },
+  "baseline_metrics": {
+    "f1_macro": 0.2037
+  },
+  "train_rows": 52553,
+  "val_rows": 2873,
+  "train_period": "2018-01-01 \u2192 2023-12-31",
+  "val_period": "2024-01-01 \u2192 2024-04-30",
+  "test_period": "2024-05-01 \u2192 2024-05-31  [N\u00c3O USADO AQUI]"
+}
