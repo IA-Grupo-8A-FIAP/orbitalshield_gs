@@ -4,7 +4,7 @@ Sistema de previsão de risco GNSS para agricultura de precisão com base em cli
 
 ## Visão geral
 
-O **OrbitalShield** organiza um pipeline de três camadas para transformar dados de clima espacial em uma predição operacional de impacto sobre GNSS:
+O **OrbitalShield** organiza um pipeline de quatro camadas para transformar dados de clima espacial em uma predição operacional de impacto sobre GNSS:
 
 1. **IPO (constructo interno)**  
    Índice de Previsão Operacional usado apenas na engenharia de atributos e no treinamento. O IPO **não é exposto ao usuário final**.
@@ -15,6 +15,9 @@ O **OrbitalShield** organiza um pipeline de três camadas para transformar dados
 3. **OGII (Operational GNSS Impact Index)**  
    Índice operacional calculado **apenas em `model/predict.py`**, em escala de **0 a 100**, para consumo externo.
 
+4. **Telemetria de campo (ESP32)**  
+   Nó IoT que assina o alerta OGII via MQTT e simula degradação GNSS proporcional ao risco previsto — fechando o loop entre predição e impacto operacional.
+
 ## Regras científicas do projeto
 
 - O IPO é um constructo interno e não aparece na interface.
@@ -22,6 +25,7 @@ O **OrbitalShield** organiza um pipeline de três camadas para transformar dados
 - O conjunto de teste de **maio/2024** foi usado **uma única vez** no backtesting final.
 - O AMAS é tratado como hipótese experimental; não deve ser apresentado como causalidade.
 - Os thresholds foram congelados após o **Sprint 0** e não devem ser recalibrados retroativamente.
+- `is_replay: true` nos payloads do ESP32 indica dados simulados — não confundir com medição real de campo.
 
 ## Resultados atuais
 
@@ -51,7 +55,13 @@ XGBoost
     ↓
 OGII (operacional)
     ↓
-Dashboard / Integração MQTT / ESP32
+Dashboard Streamlit
+    ↓
+orbitalshield/alerts  →  ESP32 (orbital_shield.ino)
+                                ↓
+orbitalshield/esp32/telemetry  →  ingestion/mqtt_telemetry.py
+                                ↓
+                          esp32_telemetry (SQLite)
 ```
 
 ## Stack
@@ -60,28 +70,48 @@ Dashboard / Integração MQTT / ESP32
 - XGBoost
 - Streamlit
 - SQLite + SQLAlchemy
-- MQTT
-- ESP32
+- MQTT (Paho)
+- ESP32 + Arduino IDE
 
 ## Estrutura do repositório
 
 ```text
 orbitalshield_gs/
 ├── backtesting/
+│   ├── backtest_may2024.py
+│   └── results/
 ├── dashboard/
-├── data/reports/
+│   └── app.py
+├── data/
+│   └── reports/
 ├── db/
+│   ├── connection.py
+│   └── models.py
 ├── esp32/
+│   ├── orbital_shield.ino
+│   └── README.md
 ├── experiments/
 ├── features/
+│   ├── engineering.py
+│   └── ipo.py
 ├── ingestion/
+│   ├── omniweb_loader.py
+│   ├── noaa_collector.py
+│   └── mqtt_telemetry.py
 ├── model/
-│   └── artifacts/
+│   ├── artifacts/
+│   ├── train.py
+│   └── predict.py
 ├── research/
+│   └── ipo_definition.md
 ├── sprint0/
+│   ├── 01_ipo_distribution.py
+│   └── thresholds.json
 ├── validation/
 ├── .env.example
 ├── .gitignore
+├── .streamlit/
+│   └── config.toml
 ├── setup.py
 └── README.md
 ```
@@ -106,20 +136,35 @@ pip install -e .
 python ingestion/omniweb_loader.py
 ```
 
-### 2. Treinamento
+### 2. Sprint 0 — Gate científico
+```bash
+python sprint0/01_ipo_distribution.py
+```
+
+### 3. Treinamento
 ```bash
 python model/train.py
 ```
 
-### 3. Backtesting
+### 4. Backtesting
 ```bash
 python backtesting/backtest_may2024.py
 ```
 
-### 4. Dashboard
+### 5. Dashboard
 ```bash
 streamlit run dashboard/app.py
 ```
+
+### 6. Bridge MQTT (ESP32 ↔ Dashboard)
+```bash
+python ingestion/mqtt_telemetry.py
+```
+
+### 7. Firmware ESP32
+Abra `esp32/orbital_shield.ino` na Arduino IDE.  
+Configure `WIFI_SSID` e `WIFI_PASSWORD` no sketch.  
+Para demonstração sem hardware físico: [Wokwi](https://wokwi.com/projects/new/esp32)
 
 ## Organização por camadas
 
@@ -137,6 +182,27 @@ streamlit run dashboard/app.py
 - Conversão da saída do modelo para índice operacional 0–100
 - Exposição para dashboard, telemetria e integrações
 
+### Camada 4 — Telemetria ESP32
+- Nó IoT que assina `orbitalshield/alerts` via MQTT
+- Simula degradação GNSS (HDOP, satélites, fix) proporcional ao OGII
+- Publica `orbitalshield/esp32/telemetry` a cada 5s
+- Bridge Python persiste dados em `esp32_telemetry` (SQLite)
+
+## Tópicos MQTT
+
+| Tópico | Direção | Payload |
+|---|---|---|
+| `orbitalshield/alerts` | Dashboard → ESP32 | `{ "ogii": 82, "level": "CRÍTICO" }` |
+| `orbitalshield/esp32/telemetry` | ESP32 → Dashboard | `{ "hdop": 5.2, "satellites_visible": 5, ... }` |
+
+## Validação em três camadas
+
+| Camada | O que valida | Resultado |
+|---|---|---|
+| Estatística | F1-macro, recall crítico no test set | 0.8149 / 0.8919 |
+| Operacional | OGII + recomendação RTK no dashboard | Antecipação de 240h |
+| Proxy físico | HDOP e satélites via ESP32 | Correlação com alert_level |
+
 ## Integrantes do grupo
 
 | Nome | E-mail | RM |
@@ -153,6 +219,7 @@ streamlit run dashboard/app.py
 - Não expor o IPO na interface de usuário.
 - Não recalibrar thresholds fora do processo formal do Sprint 0.
 - Não tratar AMAS como causalidade comprovada.
+- Payloads ESP32 com `is_replay: true` são dados de demonstração — não medição real de campo.
 
 ## Licença
 
