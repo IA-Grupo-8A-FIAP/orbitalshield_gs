@@ -23,9 +23,9 @@ class IPOThresholds:
     Thresholds calculados no Sprint 0 a partir do train set (2018–2023).
     CONGELADOS após definição — não modificar depois do treino.
     """
-    p25: float = 0.18
-    p50: float = 0.31
-    p75: float = 0.52
+    p25: float = 0.0305
+    p50: float = 0.0592
+    p75: float = 0.1053
 
 
 # ─── Versão escalar (para inferência em tempo real, 1 instante) ──────────────
