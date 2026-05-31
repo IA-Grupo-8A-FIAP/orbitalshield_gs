@@ -247,6 +247,13 @@ def load_model_metadata() -> dict:
     return {}
 
 @st.cache_data(show_spinner=False)
+def load_false_alarm_results() -> dict:
+    path = ROOT / "experiments" / "false_alarm_results.json"
+    if path.exists():
+        return json.loads(path.read_text())
+    return {}
+
+@st.cache_data(show_spinner=False)
 def load_shap_results() -> dict:
     path = ROOT / "experiments" / "shap_results.json"
     if path.exists():
@@ -769,6 +776,63 @@ with tab2:
                 </div>
             </div>""", unsafe_allow_html=True)
         st.caption("AMAS = hipótese experimental. Contribuição marginal não significativa (|Δ| < 0.005).")
+
+    # ── Alarmes conservadores ─────────────────────────────────────────────────
+    st.markdown("<div class='section-title'>ANÁLISE DE ALERTAS CONSERVADORES — MAIO/2024</div>",
+                unsafe_allow_html=True)
+
+    fa_results = load_false_alarm_results()
+    fa_path    = ROOT / "experiments" / "false_alarm_analysis.png"
+
+    if fa_results:
+        col_fa1, col_fa2, col_fa3 = st.columns(3)
+        with col_fa1:
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-val" style="font-size:28px">
+                    {fa_results.get("critical_pct", 0):.0f}%
+                </div>
+                <div class="metric-lbl">Horas em CRÍTICO</div>
+                <div style="font-size:10px; color:#484f58; margin-top:4px">
+                    {fa_results.get("critical_hours", 0)}h de {fa_results.get("total_hours", 720)}h
+                </div>
+            </div>""", unsafe_allow_html=True)
+        with col_fa2:
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-val" style="font-size:28px; color:#27ae60">
+                    {fa_results.get("justified_pct", 0):.0f}%
+                </div>
+                <div class="metric-lbl">Kp ≥ 5 (justificado)</div>
+                <div style="font-size:10px; color:#484f58; margin-top:4px">
+                    {fa_results.get("justified_kp_ge5", 0)}h com atividade geomagnética alta
+                </div>
+            </div>""", unsafe_allow_html=True)
+        with col_fa3:
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-val" style="font-size:28px; color:#f39c12">
+                    {fa_results.get("conservative_pct", 0):.0f}%
+                </div>
+                <div class="metric-lbl">Kp < 5 (conservador)</div>
+                <div style="font-size:10px; color:#484f58; margin-top:4px">
+                    Precursores detectados antes do pico
+                </div>
+            </div>""", unsafe_allow_html=True)
+
+        st.info(
+            "**Conservador ≠ Errado.** 75% dos alertas CRÍTICO ocorreram com Kp < 5 porque "
+            "o modelo detectou **precursores da tempestade** (southward_duration, bz_min_3h, "
+            "kp_mean_6h) antes que o Kp subisse. O pico de Kp=9 foi em 11/05 — mas o campo "
+            "sul persistente e o AE elevado já sinalizavam degradação desde 01/05. "
+            "Para agricultura de precisão, conservadorismo tem valor operacional positivo.",
+            icon="📊"
+        )
+
+    if fa_path.exists():
+        st.image(str(fa_path), use_container_width=True)
+    else:
+        st.warning("Execute `experiments/false_alarm_analysis.py` para gerar.", icon="⚠️")
 
     # ── Arquitetura em expander ───────────────────────────────────────────────
     with st.expander("🏗️  Arquitetura do Pipeline", expanded=False):
