@@ -260,6 +260,19 @@ def load_shap_results() -> dict:
         return json.loads(path.read_text())
     return {}
 
+@st.cache_data(show_spinner=False, ttl=3600)
+def load_arima_forecast() -> pd.DataFrame:
+    """Lê kp_forecast.csv gerado pelo script R."""
+    path = ROOT / "data" / "reports" / "kp_forecast.csv"
+    if not path.exists():
+        return pd.DataFrame()
+    try:
+        df = pd.read_csv(path)
+        df["datetime_utc"] = pd.to_datetime(df["datetime_utc"], utc=True)
+        return df
+    except Exception:
+        return pd.DataFrame()
+
 @st.cache_data(show_spinner=False, ttl=10)
 def load_esp32_telemetry(n: int = 10):
     """Últimas n leituras da tabela esp32_telemetry."""
@@ -472,6 +485,49 @@ with tab1:
                 <div style="font-size:10px; color:#484f58; margin-top:3px">{subtitle}</div>
             </div>
             """, unsafe_allow_html=True)
+
+    # ── Tendência Kp ARIMA (R) ───────────────────────────────────────────────
+    arima_df = load_arima_forecast()
+    if not arima_df.empty:
+        st.markdown("<div class='section-title'>TENDÊNCIA KP — PRÓXIMAS 24H (ARIMA · R)</div>",
+                    unsafe_allow_html=True)
+
+        col_ar1, col_ar2, col_ar3, col_ar4 = st.columns(4)
+        horizons = [1, 6, 12, 24]
+        for col, h in zip([col_ar1, col_ar2, col_ar3, col_ar4], horizons):
+            row = arima_df[arima_df["horizon_h"] == h]
+            if not row.empty:
+                kp_val  = float(row["kp_forecast"].iloc[0])
+                risk    = str(row["risk_level"].iloc[0])
+                color   = {"BAIXO": "#27ae60", "MODERADO": "#f39c12",
+                           "ALTO": "#e67e22", "CRÍTICO": "#c0392b"}.get(risk, "#58a6ff")
+                lo80    = float(row["kp_lo80"].iloc[0])
+                hi80    = float(row["kp_hi80"].iloc[0])
+                with col:
+                    st.markdown(f"""
+                    <div class="kpi-box" style="border-color:{color}44">
+                        <div class="kpi-val" style="color:{color}">{kp_val:.1f}</div>
+                        <div class="kpi-lbl">Kp t+{h}h</div>
+                        <div style="font-size:10px; color:#484f58; margin-top:3px">
+                            IC 80%: {lo80:.1f}–{hi80:.1f}
+                        </div>
+                        <div style="font-size:9px; color:{color}; margin-top:2px">
+                            {risk}
+                        </div>
+                    </div>""", unsafe_allow_html=True)
+
+        # Imagem do gráfico ARIMA
+        arima_img = ROOT / "data" / "reports" / "kp_arima_forecast.png"
+        if arima_img.exists():
+            with st.expander("📈  Ver gráfico ARIMA completo (histórico 72h + projeção 24h)",
+                             expanded=False):
+                st.image(str(arima_img), use_container_width=True)
+                st.caption(
+                    "Modelo ARIMA(0,1,0)(1,0,1)[24] ajustado em R 4.6 · "
+                    "Faixas: IC 80% e IC 95% · "
+                    "Camada complementar ao XGBoost — projeta tendência do Kp, "
+                    "não substitui o OGII operacional"
+                )
 
     # ── Gráfico OGII ──────────────────────────────────────────────────────────
     st.markdown(
