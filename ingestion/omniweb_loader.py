@@ -102,16 +102,45 @@ def parse_omniweb(text: str) -> pd.DataFrame:
     return pd.DataFrame(lines)
 
 
-def save_dataframe(df: pd.DataFrame):
+def save_dataframe(df: pd.DataFrame) -> int:
+    """
+    Persiste registros no banco com deduplicação por (collected_at, source).
+    Registros já existentes são ignorados — reexecutar o loader é seguro.
+    Retorna o número de registros novos inseridos.
+    """
     if df.empty:
         return 0
+
     session = SessionLocal()
+    inserted = 0
+    skipped  = 0
+
     try:
         for _, row in df.iterrows():
+            # Verifica se já existe registro para esse timestamp + fonte
+            exists = (
+                session.query(SpaceWeatherRaw)
+                .filter(
+                    SpaceWeatherRaw.collected_at == row["collected_at"],
+                    SpaceWeatherRaw.source       == row["source"],
+                )
+                .first()
+            )
+            if exists:
+                skipped += 1
+                continue
+
             obj = SpaceWeatherRaw(**row.to_dict())
             session.add(obj)
+            inserted += 1
+
         session.commit()
-        return len(df)
+
+        if skipped > 0:
+            logger.info(f"  Deduplicação: {inserted} inseridos, {skipped} ignorados (já existiam)")
+
+        return inserted
+
     except Exception as e:
         session.rollback()
         logger.error(f"Erro ao salvar: {e}")
@@ -142,9 +171,9 @@ def load_historical(start_year: int = 2018, end_year: int = 2023):
 
         saved = save_dataframe(df)
         total += saved
-        logger.info(f"{year}: {saved} registros. Acumulado: {total}")
+        logger.info(f"{year}: {saved} registros novos. Acumulado: {total}")
 
-    logger.info(f"Carga histórica concluída. Total: {total} registros.")
+    logger.info(f"Carga histórica concluída. Total inserido: {total} registros.")
 
 
 if __name__ == "__main__":
