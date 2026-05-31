@@ -117,6 +117,12 @@ orbitalshield_gs/
 └── README.md
 ```
 
+## Pré-requisitos
+
+- Python 3.11+
+- R 4.6+ para a projeção ARIMA de tendência Kp
+- SQLite via biblioteca padrão do Python
+
 ## Instalação
 
 ```bash
@@ -127,42 +133,57 @@ python -m venv .venv
 source .venv/bin/activate
 
 pip install --upgrade pip
+pip install -r requirements.txt
 pip install -e .
 ```
 
 ## Execução
 
-### 1. Ingestão de dados
+### 1. Inicialização do banco
 ```bash
-python ingestion/omniweb_loader.py
+python -c "from db.connection import init_db; init_db()"
 ```
 
-### 2. Sprint 0 — Gate científico
+### 2. Ingestão de dados
+```bash
+python ingestion/omniweb_loader.py
+python -c "from ingestion.omniweb_loader import load_historical; load_historical(2024, 2024)"
+```
+
+### 3. Sprint 0 — Gate científico
 ```bash
 python sprint0/01_ipo_distribution.py
 ```
 
-### 3. Treinamento
+### 4. Treinamento
 ```bash
 python model/train.py
 ```
 
-### 4. Backtesting
+### 5. Backtesting
 ```bash
 python backtesting/backtest_may2024.py
 ```
 
-### 5. Dashboard
+### 6. Projeção ARIMA — Tendência Kp 24h (R)
+Execute da raiz do projeto:
+```bash
+Rscript research/kp_arima_forecast.R
+```
+
+O script instala/carrega os pacotes R necessários: `forecast`, `RSQLite`, `DBI`, `ggplot2` e `dplyr`.
+
+### 7. Dashboard
 ```bash
 streamlit run dashboard/app.py
 ```
 
-### 6. Bridge MQTT (ESP32 ↔ Dashboard)
+### 8. Bridge MQTT (ESP32 ↔ Dashboard)
 ```bash
 python ingestion/mqtt_telemetry.py
 ```
 
-### 7. Firmware ESP32
+### 9. Firmware ESP32
 Abra `esp32/orbital_shield.ino` na Arduino IDE.  
 Configure `WIFI_SSID` e `WIFI_PASSWORD` no sketch.  
 Para demonstração sem hardware físico: [Wokwi](https://wokwi.com/projects/new/esp32)

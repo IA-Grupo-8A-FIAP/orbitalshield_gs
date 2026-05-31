@@ -375,7 +375,7 @@ with st.sidebar:
         st.rerun()
 
     if st.session_state.replay_mode:
-        st.warning("**Modo Replay ativo**  \nExibindo evento extremo  \nMaio/2024 — Kp=9, Dst=−412 nT")
+        st.warning("**Modo Replay ativo**  \nExibindo evento extremo  \nMaio/2024 — Kp=9, Dst=−406 nT")
 
     st.divider()
     st.markdown("""
@@ -403,7 +403,7 @@ with tab1:
     st.markdown(
         f"<h2 style='margin:0 0 4px 0'>Monitor Operacional{badge}</h2>"
         f"<p style='color:#8b949e; font-size:13px; margin:0'>"
-        f"{'Evento extremo — Kp=9, Dst=−412 nT' if replay else 'Últimas 72 horas — dados reais OMNIWeb'}"
+        f"{'Evento extremo — Kp=9, Dst=−406 nT' if replay else 'Últimas 72 horas — dados reais OMNIWeb'}"
         f"</p>",
         unsafe_allow_html=True
     )
@@ -488,9 +488,14 @@ with tab1:
 
     # ── Tendência Kp ARIMA (R) ───────────────────────────────────────────────
     arima_df = load_arima_forecast()
-    if not arima_df.empty:
+    if not arima_df.empty and not replay:
         st.markdown("<div class='section-title'>TENDÊNCIA KP — PRÓXIMAS 24H (ARIMA · R)</div>",
                     unsafe_allow_html=True)
+        st.caption(
+            "Camada complementar ao XGBoost — o ARIMA projeta a tendência do índice Kp "
+            "para as próximas 24h usando séries temporais (R 4.6 + auto.arima). "
+            "Não substitui o OGII operacional calculado pelo XGBoost."
+        )
 
         col_ar1, col_ar2, col_ar3, col_ar4 = st.columns(4)
         horizons = [1, 6, 12, 24]
@@ -528,6 +533,17 @@ with tab1:
                     "Camada complementar ao XGBoost — projeta tendência do Kp, "
                     "não substitui o OGII operacional"
                 )
+    elif replay:
+        st.caption(
+            "ℹ️  Projeção ARIMA usa as últimas 720h do banco — "
+            "não aplicável ao contexto do replay histórico de maio/2024."
+        )
+    else:
+        st.info(
+            "Projeção ARIMA não disponível. "
+            "Execute `Rscript research/kp_arima_forecast.R` da raiz do projeto.",
+            icon="📈"
+        )
 
     # ── Gráfico OGII ──────────────────────────────────────────────────────────
     st.markdown(
@@ -653,7 +669,7 @@ with tab2:
     st.markdown(
         "<h2 style='margin:0 0 4px 0'>Validação Científica</h2>"
         "<p style='color:#8b949e; font-size:13px; margin:0'>"
-        "Backtesting no evento extremo de Maio/2024 — Kp=9, Dst=−412 nT</p>",
+        "Backtesting no evento extremo de Maio/2024 — Kp=9, Dst=−406 nT</p>",
         unsafe_allow_html=True
     )
 
@@ -669,7 +685,7 @@ with tab2:
         (m1, f"{summary.get('f1_macro', 0):.4f}",        "F1-Macro",           "Classificação multiclasse"),
         (m2, f"{summary.get('recall_critical', 0):.4f}",  "Recall Crítico",     "Classe 3 — eventos severos"),
         (m3, f"{summary.get('antecipacao_h', 0):.0f}h",   "Antecipação",        "Primeiro alerta antes do pico"),
-        (m4, f"Kp={summary.get('kp_max', 9):.0f}",        "Evento Testado",     f"Dst={summary.get('dst_min', -412):.0f} nT"),
+        (m4, f"Kp={summary.get('kp_max', 9):.0f}",        "Evento Testado",     f"Dst={summary.get('dst_min', -406):.0f} nT"),
     ]
     for col, val, label, sub in metrics:
         with col:
@@ -952,7 +968,8 @@ with tab2:
                ↓
         dashboard/app.py  →  Monitor + Validação
                ↓
-        ESP32 + MQTT  →  Telemetria física (próxima fase)
+        ESP32 + MQTT  →  Telemetria simulada de campo (is_replay: true)
+                         Validação física com GPS real: próxima fase
         ```
 
         | Camada | Tecnologia |
