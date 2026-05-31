@@ -7,7 +7,7 @@ ATENÇÃO: Este script usa o TEST SET (mai/2024) — usar UMA ÚNICA VEZ.
 
 O evento de maio/2024 foi a maior tempestade geomagnética em 20 anos:
   - Kp máximo: 9.0 (escala 0-9)
-  - Dst mínimo: ~-412 nT
+  - Dst mínimo no recorte OMNIWeb usado: -406 nT
   - Impacto real: falhas em sistemas GNSS/RTK em todo o mundo
 
 Este script responde: o modelo teria alertado ANTES do pico?
@@ -55,9 +55,10 @@ THRESH_FILE = ROOT / "sprint0" / "thresholds.json"
 
 def load_test_set() -> pd.DataFrame:
     """
-    Carrega maio/2024 completo do banco.
+    Carrega a janela do evento de maio/2024 no banco.
     Inclui abril/2024 como contexto para rolling features —
-    apenas maio é avaliado, abril serve só de warmup.
+    apenas maio é avaliado, abril serve só de warmup. Após o horizonte
+    t+1h e o recorte temporal, o backtest avalia 720 horas.
     """
     session = SessionLocal()
     try:

@@ -377,7 +377,7 @@ if __name__ == "__main__":
     {
         "label":           "🔥 Evento extremo — mai/2024 (Kp=9)",
         "kp":              9.0, "bz_nT": -40.0,
-        "dst":             -412.0, "ae_index": 2800.0,
+        "dst":             -406.0, "ae_index": 2800.0,
         "solar_wind_speed": 900.0,
         "reference_dt":    datetime(2024, 5, 10, 22, 0, tzinfo=timezone.utc),
     },

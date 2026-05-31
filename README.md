@@ -30,7 +30,8 @@ O **OrbitalShield** organiza um pipeline de quatro camadas para transformar dado
 
 ## Resultados atuais
 
-- Ingestão histórica NOAA/OMNIWeb: **52.584 registros** (2018–2024)
+- Base de treino OMNIWeb: **52.584 registros** (2018–2023)
+- Dados de 2024 usados separadamente para validação, backtesting e replay
 - Sprint 0 científico aprovado:
   - `p25 = 0.0305`
   - `p50 = 0.0592`
@@ -160,6 +161,9 @@ python sprint0/01_ipo_distribution.py
 python model/train.py
 ```
 
+> O arquivo `model/artifacts/xgboost_model.joblib` não é versionado no GitHub.
+> Ele é gerado localmente por `python model/train.py`.
+
 ### 5. Backtesting
 ```bash
 python backtesting/backtest_may2024.py
@@ -187,6 +191,12 @@ python ingestion/mqtt_telemetry.py
 Abra `esp32/orbital_shield.ino` na Arduino IDE.  
 Configure `WIFI_SSID` e `WIFI_PASSWORD` no sketch.  
 Para demonstração sem hardware físico: [Wokwi](https://wokwi.com/projects/new/esp32)
+
+### Observação sobre artefatos locais
+
+O banco `orbitalshield.db` e o modelo `xgboost_model.joblib` não são versionados.
+Eles são recriados pelos passos de inicialização, ingestão e treinamento para manter
+rastreabilidade e evitar versionar arquivos pesados ou sensíveis.
 
 ## Organização por camadas
 
