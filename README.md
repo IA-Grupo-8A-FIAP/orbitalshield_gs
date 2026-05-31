@@ -245,6 +245,38 @@ O projeto implementa práticas de segurança em múltiplas camadas:
 - Autenticação username/password no broker
 - Rate limiting no dashboard para deploy público
 
+## Roadmap — Extensões Futuras
+
+O OrbitalShield foi concebido para agricultura de precisão, mas o problema do clima espacial é mais amplo. O grupo identificou duas extensões naturais do sistema:
+
+### Extensão 1 — Validação RBMC/IBGE (SunStrike)
+
+A Rede Brasileira de Monitoramento Contínuo GPS do IBGE registrou deriva de posicionamento de até **8,2 metros** na estação CUIB (Cuiabá/MT) durante a tempestade de maio/2024. Esses dados RINEX são públicos e representam o **ground truth real** de degradação GNSS em solo brasileiro.
+
+A próxima versão do OrbitalShield integrará os dados RBMC/IBGE como validação física direta — substituindo o proxy ESP32 por medições reais de receptor geodésico, eliminando a principal limitação científica atual.
+
+### Extensão 2 — OrbitalShield Rural (ConnectWindow)
+
+Mais de **18 milhões de brasileiros** em regiões remotas (comunidades ribeirinhas, quilombolas, agricultores familiares) dependem de satélites tanto para GPS quanto para comunicação. Nessas regiões, a janela de sinal satelital é intermitente — e ninguém avisa quando ela chega.
+
+A extensão ConnectWindow integra ao OrbitalShield:
+
+- **Simulador orbital** — calcula quando um satélite passa sobre uma coordenada usando dados TLE do Celestrak/NASA
+- **Fila inteligente** — prioriza mensagens por urgência (emergência médica → alerta climático → dados agrícolas → comunicação pessoal)
+- **Otimizador de janela** — dado X minutos de sinal e banda limitada, decide o que enviar primeiro
+- **Preditor com ML** — regressão linear treinada com histórico de janelas para prever duração e qualidade do próximo sinal
+
+**Integração com o OGII:** quando o índice indica risco CRÍTICO E a janela de comunicação é curta, o sistema prioriza automaticamente mensagens de emergência médica e alertas de desastre — tecnologia espacial como ferramenta de inclusão digital.
+
+### Impacto social ampliado
+
+| Público | Problema | Solução |
+|---|---|---|
+| Agricultor de precisão | GPS degrada sem aviso | OGII + alerta 240h de antecipação |
+| Agricultor familiar remoto | Não sabe quando o sinal chega | ConnectWindow — fila priorizada |
+| Comunidades ribeirinhas | Emergências médicas sem comunicação | Mensagens de saúde priorizadas na janela |
+| Gestores de desastre | Alertas de enchente não chegam | Alertas climáticos no topo da fila |
+
 ## Observações importantes
 
 - Não versionar artefatos pesados ou arquivos sensíveis.

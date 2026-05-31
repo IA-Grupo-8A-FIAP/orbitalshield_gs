@@ -890,6 +890,48 @@ with tab2:
     else:
         st.warning("Execute `experiments/false_alarm_analysis.py` para gerar.", icon="⚠️")
 
+    # ── Visão de Produto e Impacto Social ────────────────────────────────────
+    with st.expander("🌍  Visão de Produto — Extensões e Impacto Social", expanded=False):
+        st.markdown("""
+        ### OrbitalShield hoje
+        Sistema de previsão de risco GNSS para **agricultura de precisão** —
+        produtores com maquinário RTK que podem planejar operações com até 240h de antecedência.
+
+        ---
+
+        ### Extensão 1 — Validação RBMC/IBGE
+        A Rede Brasileira de Monitoramento Contínuo GPS do IBGE registrou deriva de
+        **8,2 metros** na estação CUIB (Cuiabá/MT) durante a tempestade de maio/2024.
+        Esses dados RINEX são públicos e representam o **ground truth real** de degradação
+        GNSS em solo brasileiro — a próxima camada de validação do sistema.
+
+        ---
+
+        ### Extensão 2 — OrbitalShield Rural (ConnectWindow)
+        Mais de **18 milhões de brasileiros** em regiões remotas dependem de satélites
+        para comunicação, mas a janela de sinal é intermitente e imprevisível.
+
+        A extensão ConnectWindow integra ao OrbitalShield:
+        - **Simulador orbital** com dados TLE do Celestrak/NASA
+        - **Fila inteligente** — emergência médica → alerta climático → dados agrícolas
+        - **Otimizador de janela** — algoritmo de mochila para maximizar o uso do sinal
+        - **Preditor ML** — regressão linear sobre histórico de janelas
+
+        **Integração com o OGII:** quando o risco é CRÍTICO e a janela é curta,
+        mensagens de emergência médica e alertas de desastre têm prioridade automática.
+
+        ---
+
+        ### Impacto social ampliado
+
+        | Público | Problema | Solução |
+        |---|---|---|
+        | Agricultor de precisão | GPS degrada sem aviso | OGII + 240h de antecipação |
+        | Agricultor familiar remoto | Não sabe quando o sinal chega | ConnectWindow |
+        | Comunidades ribeirinhas | Emergências sem comunicação | Fila priorizada |
+        | Gestores de desastre | Alertas não chegam a tempo | Prioridade automática |
+        """)
+
     # ── Arquitetura em expander ───────────────────────────────────────────────
     with st.expander("🏗️  Arquitetura do Pipeline", expanded=False):
         st.markdown("""
