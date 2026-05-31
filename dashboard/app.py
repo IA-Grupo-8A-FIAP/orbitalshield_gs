@@ -253,6 +253,35 @@ def load_shap_results() -> dict:
         return json.loads(path.read_text())
     return {}
 
+@st.cache_data(show_spinner=False, ttl=10)
+def load_esp32_telemetry(n: int = 10):
+    """Últimas n leituras da tabela esp32_telemetry."""
+    try:
+        from db.models import Esp32Telemetry
+        session = SessionLocal()
+        try:
+            rows = (
+                session.query(Esp32Telemetry)
+                .order_by(Esp32Telemetry.received_at.desc())
+                .limit(n)
+                .all()
+            )
+        finally:
+            session.close()
+        if not rows:
+            return pd.DataFrame()
+        return pd.DataFrame([{
+            "received_at":        r.received_at,
+            "hdop":               r.hdop,
+            "satellites_visible": r.satellites_visible,
+            "fix_quality":        r.fix_quality,
+            "status":             r.status,
+            "ogii_received":      getattr(r, "ogii_received", None),
+            "is_replay":          r.is_replay,
+        } for r in rows])
+    except Exception:
+        return pd.DataFrame()
+
 # ─── Helpers visuais ──────────────────────────────────────────────────────────
 
 def ogii_color(level: str) -> str:
@@ -461,6 +490,86 @@ with tab1:
         use_container_width=True,
         hide_index=True,
     )
+
+    # ── Telemetria ESP32 ─────────────────────────────────────────────────────
+    with st.expander("📡  Telemetria de Campo — ESP32 (Nó GNSS)", expanded=False):
+        esp_df = load_esp32_telemetry()
+
+        if esp_df.empty:
+            # Demonstração com dados fixos quando bridge não está rodando
+            st.info(
+                "Bridge MQTT não ativo. Exibindo demonstração estática. "
+                "Para dados ao vivo: `python ingestion/mqtt_telemetry.py`",
+                icon="📡"
+            )
+            # Estado de demonstração baseado no OGII atual
+            ogii_now = float(last["ogii"]) if "ogii" in last else 50.0
+            if ogii_now > 75:
+                demo = {"HDOP": "5.8", "Satélites": "4", "Fix": "1 (No Fix)",
+                        "Status": "🔴 NO_RTK"}
+            elif ogii_now > 50:
+                demo = {"HDOP": "3.2", "Satélites": "7", "Fix": "2 (Float)",
+                        "Status": "🟠 DEGRADED"}
+            elif ogii_now > 25:
+                demo = {"HDOP": "1.9", "Satélites": "10", "Fix": "3 (Float)",
+                        "Status": "🟡 DEGRADED"}
+            else:
+                demo = {"HDOP": "0.9", "Satélites": "14", "Fix": "4 (RTK Fixed)",
+                        "Status": "🟢 OK"}
+
+            c1, c2, c3, c4 = st.columns(4)
+            for col, (lbl, val) in zip([c1, c2, c3, c4], demo.items()):
+                with col:
+                    st.markdown(f"""
+                    <div class="kpi-box">
+                        <div class="kpi-val" style="font-size:20px">{val}</div>
+                        <div class="kpi-lbl">{lbl}</div>
+                    </div>""", unsafe_allow_html=True)
+            st.caption("⚠️  Demonstração — is_replay: true | dados correlacionados ao OGII atual")
+
+        else:
+            last_esp = esp_df.iloc[0]
+            ts_esp   = last_esp["received_at"]
+            ts_str   = ts_esp.strftime("%d/%m %H:%M UTC") if hasattr(ts_esp, "strftime") else str(ts_esp)
+
+            # Status color
+            status_color = {
+                "OK":      "#27ae60",
+                "DEGRADED":"#e67e22",
+                "NO_RTK":  "#c0392b",
+            }.get(str(last_esp.get("status", "")), "#58a6ff")
+
+            c1, c2, c3, c4 = st.columns(4)
+            kpis_esp = [
+                (c1, "HDOP",       f"{last_esp['hdop']:.2f}",              "Precisão GNSS"),
+                (c2, "Satélites",  str(last_esp["satellites_visible"]),     "Visíveis"),
+                (c3, "Fix Quality",str(last_esp["fix_quality"]),            "0=No Fix / 4=RTK"),
+                (c4, "Status",     str(last_esp.get("status", "—")),       ts_str),
+            ]
+            for col, lbl, val, sub in kpis_esp:
+                with col:
+                    color = status_color if lbl == "Status" else "#e6edf3"
+                    st.markdown(f"""
+                    <div class="kpi-box" style="border-color:{color}33">
+                        <div class="kpi-val" style="font-size:20px; color:{color}">{val}</div>
+                        <div class="kpi-lbl">{lbl}</div>
+                        <div style="font-size:10px; color:#484f58; margin-top:3px">{sub}</div>
+                    </div>""", unsafe_allow_html=True)
+
+            # Mini histórico
+            if len(esp_df) > 1:
+                st.caption("Histórico HDOP — últimas leituras")
+                hist = esp_df[["received_at","hdop","status"]].copy()
+                hist["received_at"] = pd.to_datetime(hist["received_at"]).dt.strftime("%H:%M")
+                st.dataframe(hist.rename(columns={
+                    "received_at": "Hora", "hdop": "HDOP", "status": "Status"
+                }), use_container_width=True, hide_index=True)
+
+            replay_flag = last_esp.get("is_replay", True)
+            st.caption(
+                f"{'⚠️  Demonstração (is_replay: true)' if replay_flag else '✅ Dados reais de campo'} "
+                f"| Device: orbital_esp32_01 | Tópico: orbitalshield/esp32/telemetry"
+            )
 
     # Nota contextual no modo replay
     if replay:
