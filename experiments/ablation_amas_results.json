@@ -1,0 +1,52 @@
+{
+  "ablation_target": "amas_factor",
+  "val_period": "2024-01-01 \u2192 2024-04-30",
+  "test_set_used": false,
+  "with_amas": {
+    "label": "COM amas_factor",
+    "n_features": 13,
+    "feature_cols": [
+      "kp",
+      "bz_nT",
+      "bz_min_3h",
+      "dst",
+      "ae_index",
+      "southward_duration",
+      "hour_sin",
+      "hour_cos",
+      "solar_wind_speed",
+      "kp_lag_3h",
+      "kp_mean_6h",
+      "kp_x_bz_neg",
+      "amas_factor"
+    ],
+    "f1_macro": 0.8185,
+    "recall_critical": 0.876,
+    "best_iteration": 399
+  },
+  "without_amas": {
+    "label": "SEM amas_factor",
+    "n_features": 12,
+    "feature_cols": [
+      "kp",
+      "bz_nT",
+      "bz_min_3h",
+      "dst",
+      "ae_index",
+      "southward_duration",
+      "hour_sin",
+      "hour_cos",
+      "solar_wind_speed",
+      "kp_lag_3h",
+      "kp_mean_6h",
+      "kp_x_bz_neg"
+    ],
+    "f1_macro": 0.8176,
+    "recall_critical": 0.8713,
+    "best_iteration": 399
+  },
+  "delta_f1_macro": 0.0009,
+  "delta_recall": 0.0047,
+  "verdict": "NEUTRO",
+  "recommendation": "amas_factor n\u00e3o apresenta contribui\u00e7\u00e3o relevante (|\u0394| < 0.005). Recomendado: manter como hip\u00f3tese experimental documentada, sem impacto no modelo principal."
+}
