@@ -1,0 +1,11 @@
+{
+  "period": "2024-05-01 \u2192 2024-05-31",
+  "total_hours": 720,
+  "critical_hours": 303,
+  "critical_pct": 42.1,
+  "justified_kp_ge5": 75,
+  "justified_pct": 24.8,
+  "conservative_kp_lt5": 228,
+  "conservative_pct": 75.2,
+  "note": "Conservador != errado. Kp < 5 antes do pico pode refletir precursores reais capturados pelas rolling features (southward_duration, bz_min_3h, kp_mean_6h). O modelo prev\u00ea t+1h a partir de precursores, n\u00e3o do pico instant\u00e2neo."
+}
