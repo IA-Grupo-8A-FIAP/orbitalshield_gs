@@ -177,15 +177,12 @@ def get_model_and_thresholds():
 
 @st.cache_data(show_spinner=False, ttl=300)
 def load_recent_data(hours: int = 80) -> pd.DataFrame:
-    """Últimas `hours` horas do banco — limitado a abr/2024 (fim do período conhecido)."""
+    """Últimas `hours` horas do banco (OMNIWeb)."""
     session = SessionLocal()
     try:
         rows = (
             session.query(SpaceWeatherRaw)
-            .filter(
-                SpaceWeatherRaw.source == "omniweb",
-                SpaceWeatherRaw.collected_at <= "2024-04-30",  # limite do val set
-            )
+            .filter(SpaceWeatherRaw.source == "omniweb")
             .order_by(SpaceWeatherRaw.collected_at.desc())
             .limit(hours)
             .all()
@@ -461,9 +458,11 @@ with tab1:
     # Nota contextual no modo replay
     if replay:
         st.info(
-            "**Contexto:** O modelo emitiu alerta CRÍTICO desde 01/05 — 10 dias antes do pico "
-            "de Kp=9 em 11/05. O conservadorismo é esperado em eventos de magnitude histórica. "
-            "A antecipação de 240h permitiria planejamento operacional completo.",
+            "**Lead time operacional de 240h:** O modelo prevê risco em horizonte de t+1h. "
+            "No evento de maio/2024, emitiu alertas CRÍTICO sequenciais hora a hora desde 01/05 "
+            "— detectando o início da rampa de degradação geomagnética 10 dias antes do pico "
+            "de Kp=9 em 11/05. Não é previsão direta do pico, mas detecção contínua da "
+            "deterioração do clima espacial. Na prática: 240h de lead time para planejamento agrícola.",
             icon="ℹ️"
         )
 

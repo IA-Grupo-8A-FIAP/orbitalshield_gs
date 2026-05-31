@@ -23,6 +23,7 @@ O **OrbitalShield** organiza um pipeline de quatro camadas para transformar dado
 - O IPO é um constructo interno e não aparece na interface.
 - O OGII é calculado somente no módulo de inferência.
 - O conjunto de teste de **maio/2024** foi usado **uma única vez** no backtesting final.
+- O modelo prevê risco em **t+1h** (horizonte de predição). O lead time operacional de 240h no evento de maio/2024 reflete detecção contínua do início da rampa de degradação, não previsão direta do pico.
 - O AMAS é tratado como hipótese experimental; não deve ser apresentado como causalidade.
 - Os thresholds foram congelados após o **Sprint 0** e não devem ser recalibrados retroativamente.
 - `is_replay: true` nos payloads do ESP32 indica dados simulados — não confundir com medição real de campo.
@@ -40,7 +41,7 @@ O **OrbitalShield** organiza um pipeline de quatro camadas para transformar dado
 - Backtesting em evento de maio/2024:
   - **F1-macro = 0.8149**
   - **Recall classe 3 = 0.8919**
-  - **Antecipação do pico: 240 horas**
+  - **Lead time operacional: 240 horas** — o modelo emitiu alertas CRÍTICO sequenciais hora a hora desde 01/05, detectando o início da rampa de degradação 10 dias antes do pico de Kp=9 em 11/05 (horizonte de predição: t+1h)
 
 ## Arquitetura
 
@@ -212,6 +213,37 @@ Para demonstração sem hardware físico: [Wokwi](https://wokwi.com/projects/new
 | Abner Henrique Dias Rosa Sanches | abner.mtpvp@gmail.com | 572253 |
 | Brenoezo Leardini | b.leardini@gmail.com | 572533 |
 | Elton Modesto de Souza Dias | elton.redes@hotmail.com | 572530 |
+
+
+## Segurança
+
+O projeto implementa práticas de segurança em múltiplas camadas:
+
+### Proteção de credenciais
+- Variáveis sensíveis (broker MQTT, caminhos, chaves) isoladas em `.env`
+- `.env` protegido pelo `.gitignore` — nunca versionado
+- `.env.example` documenta as variáveis sem expor valores reais
+- Validação de variáveis obrigatórias no startup via `db/connection.py`
+
+### Separação de camadas
+- IPO é constructo interno — não exposto na interface ou em logs
+- OGII calculado exclusivamente em `model/predict.py`
+- Artefatos do modelo (`.joblib`) no `.gitignore` — não versionados
+
+### IoT / MQTT
+- Credenciais do broker via `.env` (nunca hardcoded em produção)
+- Payload ESP32 com `is_replay: true` — transparência de dados simulados
+- Tópicos com namespace dedicado (`orbitalshield/`)
+
+### Dados e rastreabilidade
+- Test set maio/2024 usado uma única vez — resultados congelados
+- Thresholds versionados em `sprint0/thresholds.json`
+- Banco SQLite local — dados não expostos a serviços externos
+
+### Próximos passos de segurança (fase 2)
+- TLS no broker MQTT (porta 8883)
+- Autenticação username/password no broker
+- Rate limiting no dashboard para deploy público
 
 ## Observações importantes
 

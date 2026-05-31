@@ -40,9 +40,16 @@ logger = logging.getLogger(__name__)
 
 # ─── Configuração ─────────────────────────────────────────────────────────────
 
-MQTT_BROKER          = "test.mosquitto.org"
-MQTT_PORT            = 1883
-MQTT_CLIENT_ID       = "orbitalshield_bridge_01"
+# Credenciais via .env — nunca hardcoded em producao
+from dotenv import load_dotenv
+import os
+load_dotenv()
+
+MQTT_BROKER    = os.getenv("MQTT_BROKER",    "test.mosquitto.org")
+MQTT_PORT      = int(os.getenv("MQTT_PORT",  "1883"))
+MQTT_CLIENT_ID = os.getenv("MQTT_CLIENT_ID", "orbitalshield_bridge_01")
+MQTT_USERNAME  = os.getenv("MQTT_USERNAME")  # None = sem autenticacao
+MQTT_PASSWORD  = os.getenv("MQTT_PASSWORD")  # None = sem autenticacao
 
 TOPIC_TELEMETRY      = "orbitalshield/esp32/telemetry"
 TOPIC_ALERTS         = "orbitalshield/alerts"
@@ -174,6 +181,13 @@ def run():
     client.on_connect    = on_connect
     client.on_message    = on_message
     client.on_disconnect = on_disconnect
+
+    # Autenticacao opcional via .env
+    if MQTT_USERNAME and MQTT_PASSWORD:
+        client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
+        logger.info("MQTT: autenticacao username/password ativada")
+    else:
+        logger.warning("MQTT: sem autenticacao — adequado apenas para demo/dev")
 
     logger.info(f"Conectando a {MQTT_BROKER}:{MQTT_PORT}...")
     client.connect(MQTT_BROKER, MQTT_PORT, keepalive=60)
