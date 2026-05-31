@@ -246,6 +246,13 @@ def load_model_metadata() -> dict:
         return json.loads(path.read_text())
     return {}
 
+@st.cache_data(show_spinner=False)
+def load_shap_results() -> dict:
+    path = ROOT / "experiments" / "shap_results.json"
+    if path.exists():
+        return json.loads(path.read_text())
+    return {}
+
 # ─── Helpers visuais ──────────────────────────────────────────────────────────
 
 def ogii_color(level: str) -> str:
@@ -566,6 +573,93 @@ with tab2:
             st.image(str(fi_path), use_container_width=True)
         else:
             st.warning("Execute `model/train.py` para gerar.", icon="⚠️")
+
+    # ── SHAP Values ───────────────────────────────────────────────────────────
+    st.markdown("<div class='section-title'>EXPLICABILIDADE — SHAP VALUES</div>",
+                unsafe_allow_html=True)
+
+    shap_results = load_shap_results()
+
+    col_shap1, col_shap2 = st.columns(2, gap="large")
+
+    with col_shap1:
+        st.caption("SHAP — Importância Média por Feature (todas as classes)")
+        shap_bar_path = ROOT / "experiments" / "shap_bar.png"
+        if shap_bar_path.exists():
+            st.image(str(shap_bar_path), use_container_width=True)
+        else:
+            st.warning("Execute `experiments/shap_analysis.py` para gerar.", icon="⚠️")
+
+    with col_shap2:
+        st.caption("SHAP — Classe CRÍTICO (top 10 features)")
+        shap_crit_path = ROOT / "experiments" / "shap_class_critical.png"
+        if shap_crit_path.exists():
+            st.image(str(shap_crit_path), use_container_width=True)
+        else:
+            st.warning("Execute `experiments/shap_analysis.py` para gerar.", icon="⚠️")
+
+    # Top 5 SHAP classe crítico em cards
+    if shap_results.get("top_features_by_class", {}).get("Crítico"):
+        st.markdown("<div class='section-title'>TOP 5 FEATURES — CLASSE CRÍTICO</div>",
+                    unsafe_allow_html=True)
+        top5 = shap_results["top_features_by_class"]["Crítico"]
+        cols_top = st.columns(5)
+        max_shap = top5[0]["mean_abs_shap"] if top5 else 1
+        for col, feat in zip(cols_top, top5):
+            pct = feat["mean_abs_shap"] / max_shap * 100
+            with col:
+                st.markdown(f"""
+                <div class="kpi-box">
+                    <div class="kpi-val" style="font-size:18px; color:#58a6ff">
+                        {feat["mean_abs_shap"]:.4f}
+                    </div>
+                    <div class="kpi-lbl">{feat["label"].split("(")[0].strip()}</div>
+                    <div style="margin-top:6px; background:#21262d;
+                                border-radius:4px; height:4px">
+                        <div style="width:{pct:.0f}%; background:#58a6ff;
+                                    height:4px; border-radius:4px"></div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+    # Ablation AMAS
+    ablation_path = ROOT / "experiments" / "ablation_amas_results.json"
+    if ablation_path.exists():
+        ablation = json.loads(ablation_path.read_text())
+        st.markdown("<div class='section-title'>ABLATION STUDY — AMAS FACTOR</div>",
+                    unsafe_allow_html=True)
+        col_ab1, col_ab2, col_ab3 = st.columns(3)
+        with col_ab1:
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-val" style="font-size:24px">
+                    {ablation["with_amas"]["f1_macro"]:.4f}
+                </div>
+                <div class="metric-lbl">F1 COM amas</div>
+            </div>""", unsafe_allow_html=True)
+        with col_ab2:
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-val" style="font-size:24px">
+                    {ablation["without_amas"]["f1_macro"]:.4f}
+                </div>
+                <div class="metric-lbl">F1 SEM amas</div>
+            </div>""", unsafe_allow_html=True)
+        with col_ab3:
+            verdict_color = {"POSITIVO": "#27ae60",
+                             "NEUTRO":   "#f39c12",
+                             "NEGATIVO": "#c0392b"}.get(ablation["verdict"], "#58a6ff")
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-val" style="font-size:22px; color:{verdict_color}">
+                    {ablation["verdict"]}
+                </div>
+                <div class="metric-lbl">Veredito ablation</div>
+                <div style="font-size:9px; color:#484f58; margin-top:4px">
+                    ΔF1={ablation["delta_f1_macro"]:+.4f}
+                </div>
+            </div>""", unsafe_allow_html=True)
+        st.caption("AMAS = hipótese experimental. Contribuição marginal não significativa (|Δ| < 0.005).")
 
     # ── Arquitetura em expander ───────────────────────────────────────────────
     with st.expander("🏗️  Arquitetura do Pipeline", expanded=False):
