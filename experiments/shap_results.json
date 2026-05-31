@@ -1,0 +1,182 @@
+{
+  "val_period": "2024-01-01 \u2192 2024-04-30",
+  "n_samples": 500,
+  "test_set_used": false,
+  "top_features_by_class": {
+    "Baixo": [
+      {
+        "feature": "kp",
+        "label": "Kp (atividade geomagn\u00e9tica)",
+        "mean_abs_shap": 1.3976
+      },
+      {
+        "feature": "ae_index",
+        "label": "AE (atividade auroral)",
+        "mean_abs_shap": 0.7565
+      },
+      {
+        "feature": "kp_x_bz_neg",
+        "label": "Kp \u00d7 |Bz negativo|",
+        "mean_abs_shap": 0.4064
+      },
+      {
+        "feature": "bz_nT",
+        "label": "Bz (campo magn\u00e9tico sul)",
+        "mean_abs_shap": 0.3452
+      },
+      {
+        "feature": "dst",
+        "label": "Dst (resposta magnetosf\u00e9rica)",
+        "mean_abs_shap": 0.2935
+      }
+    ],
+    "Moderado": [
+      {
+        "feature": "kp",
+        "label": "Kp (atividade geomagn\u00e9tica)",
+        "mean_abs_shap": 1.0258
+      },
+      {
+        "feature": "ae_index",
+        "label": "AE (atividade auroral)",
+        "mean_abs_shap": 0.3606
+      },
+      {
+        "feature": "kp_x_bz_neg",
+        "label": "Kp \u00d7 |Bz negativo|",
+        "mean_abs_shap": 0.2581
+      },
+      {
+        "feature": "dst",
+        "label": "Dst (resposta magnetosf\u00e9rica)",
+        "mean_abs_shap": 0.1944
+      },
+      {
+        "feature": "bz_nT",
+        "label": "Bz (campo magn\u00e9tico sul)",
+        "mean_abs_shap": 0.1146
+      }
+    ],
+    "Alto": [
+      {
+        "feature": "kp",
+        "label": "Kp (atividade geomagn\u00e9tica)",
+        "mean_abs_shap": 0.9971
+      },
+      {
+        "feature": "ae_index",
+        "label": "AE (atividade auroral)",
+        "mean_abs_shap": 0.1791
+      },
+      {
+        "feature": "kp_x_bz_neg",
+        "label": "Kp \u00d7 |Bz negativo|",
+        "mean_abs_shap": 0.1532
+      },
+      {
+        "feature": "hour_sin",
+        "label": "Hora \u2014 seno (ciclo diurno)",
+        "mean_abs_shap": 0.1414
+      },
+      {
+        "feature": "dst",
+        "label": "Dst (resposta magnetosf\u00e9rica)",
+        "mean_abs_shap": 0.1397
+      }
+    ],
+    "Cr\u00edtico": [
+      {
+        "feature": "kp",
+        "label": "Kp (atividade geomagn\u00e9tica)",
+        "mean_abs_shap": 1.5414
+      },
+      {
+        "feature": "ae_index",
+        "label": "AE (atividade auroral)",
+        "mean_abs_shap": 0.4934
+      },
+      {
+        "feature": "kp_x_bz_neg",
+        "label": "Kp \u00d7 |Bz negativo|",
+        "mean_abs_shap": 0.348
+      },
+      {
+        "feature": "dst",
+        "label": "Dst (resposta magnetosf\u00e9rica)",
+        "mean_abs_shap": 0.2993
+      },
+      {
+        "feature": "bz_min_3h",
+        "label": "Bz m\u00edn. 3h anteriores",
+        "mean_abs_shap": 0.2283
+      }
+    ]
+  },
+  "global_ranking": [
+    {
+      "feature": "kp",
+      "label": "Kp (atividade geomagn\u00e9tica)",
+      "mean_abs_shap": 1.2404
+    },
+    {
+      "feature": "ae_index",
+      "label": "AE (atividade auroral)",
+      "mean_abs_shap": 0.4474
+    },
+    {
+      "feature": "kp_x_bz_neg",
+      "label": "Kp \u00d7 |Bz negativo|",
+      "mean_abs_shap": 0.2914
+    },
+    {
+      "feature": "dst",
+      "label": "Dst (resposta magnetosf\u00e9rica)",
+      "mean_abs_shap": 0.2317
+    },
+    {
+      "feature": "bz_nT",
+      "label": "Bz (campo magn\u00e9tico sul)",
+      "mean_abs_shap": 0.1877
+    },
+    {
+      "feature": "solar_wind_speed",
+      "label": "Vento solar (km/s)",
+      "mean_abs_shap": 0.1567
+    },
+    {
+      "feature": "bz_min_3h",
+      "label": "Bz m\u00edn. 3h anteriores",
+      "mean_abs_shap": 0.1455
+    },
+    {
+      "feature": "kp_mean_6h",
+      "label": "Kp m\u00e9dia 6h",
+      "mean_abs_shap": 0.132
+    },
+    {
+      "feature": "hour_sin",
+      "label": "Hora \u2014 seno (ciclo diurno)",
+      "mean_abs_shap": 0.123
+    },
+    {
+      "feature": "hour_cos",
+      "label": "Hora \u2014 cosseno (ciclo diurno)",
+      "mean_abs_shap": 0.1149
+    },
+    {
+      "feature": "kp_lag_3h",
+      "label": "Kp lag 3h",
+      "mean_abs_shap": 0.0569
+    },
+    {
+      "feature": "southward_duration",
+      "label": "Dura\u00e7\u00e3o campo sul (h)",
+      "mean_abs_shap": 0.0006
+    },
+    {
+      "feature": "amas_factor",
+      "label": "AMAS (fator regional)",
+      "mean_abs_shap": 0.0
+    }
+  ]
+}
