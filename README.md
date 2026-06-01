@@ -1,38 +1,38 @@
-# OrbitalShield
+﻿# OrbitalShield
 
-Sistema de previsão de risco GNSS para agricultura de precisão com base em clima espacial.
+Sistema de previsÃ£o de risco GNSS para agricultura de precisÃ£o com base em clima espacial.
 
-## Visão geral
+## VisÃ£o geral
 
-O **OrbitalShield** organiza um pipeline de quatro camadas para transformar dados de clima espacial em uma predição operacional de impacto sobre GNSS:
+O **OrbitalShield** organiza um pipeline de quatro camadas para transformar dados de clima espacial em uma prediÃ§Ã£o operacional de impacto sobre GNSS:
 
 1. **IPO (constructo interno)**  
-   Índice de Previsão Operacional usado apenas na engenharia de atributos e no treinamento. O IPO **não é exposto ao usuário final**.
+   Ãndice de PrevisÃ£o Operacional usado apenas na engenharia de atributos e no treinamento. O IPO **nÃ£o Ã© exposto ao usuÃ¡rio final**.
 
 2. **Modelo preditivo**  
    Classificador treinado com **XGBoost** para mapear o IPO em classes de risco.
 
 3. **OGII (Operational GNSS Impact Index)**  
-   Índice operacional calculado **apenas em `model/predict.py`**, em escala de **0 a 100**, para consumo externo.
+   Ãndice operacional calculado **apenas em `model/predict.py`**, em escala de **0 a 100**, para consumo externo.
 
 4. **Telemetria de campo (ESP32)**  
-   Nó IoT que assina o alerta OGII via MQTT e simula degradação GNSS proporcional ao risco previsto — fechando o loop entre predição e impacto operacional.
+   NÃ³ IoT que assina o alerta OGII via MQTT e simula degradaÃ§Ã£o GNSS proporcional ao risco previsto â€” fechando o loop entre prediÃ§Ã£o e impacto operacional.
 
-## Regras científicas do projeto
+## Regras cientÃ­ficas do projeto
 
-- O IPO é um constructo interno e não aparece na interface.
-- O OGII é calculado somente no módulo de inferência.
-- O conjunto de teste de **maio/2024** foi usado **uma única vez** no backtesting final.
-- O modelo prevê risco em **t+1h** (horizonte de predição). O lead time operacional de 240h no evento de maio/2024 reflete detecção contínua do início da rampa de degradação, não previsão direta do pico.
-- O AMAS é tratado como hipótese experimental; não deve ser apresentado como causalidade.
-- Os thresholds foram congelados após o **Sprint 0** e não devem ser recalibrados retroativamente.
-- `is_replay: true` nos payloads do ESP32 indica dados simulados — não confundir com medição real de campo.
+- O IPO Ã© um constructo interno e nÃ£o aparece na interface.
+- O OGII Ã© calculado somente no mÃ³dulo de inferÃªncia.
+- O conjunto de teste de **maio/2024** foi usado **uma Ãºnica vez** no backtesting final.
+- O modelo prevÃª risco em **t+1h** (horizonte de prediÃ§Ã£o). O lead time operacional de 240h no evento de maio/2024 reflete detecÃ§Ã£o contÃ­nua do inÃ­cio da rampa de degradaÃ§Ã£o, nÃ£o previsÃ£o direta do pico.
+- O AMAS Ã© tratado como hipÃ³tese experimental; nÃ£o deve ser apresentado como causalidade.
+- Os thresholds foram congelados apÃ³s o **Sprint 0** e nÃ£o devem ser recalibrados retroativamente.
+- `is_replay: true` nos payloads do ESP32 indica dados simulados â€” nÃ£o confundir com mediÃ§Ã£o real de campo.
 
 ## Resultados atuais
 
-- Base OMNIWeb de treino: **2018–2023**, com **52.553 linhas efetivas** após feature engineering e remoção de linhas inválidas
-- Dados de 2024 reservados separadamente para validação, backtesting e replay
-- Sprint 0 científico aprovado:
+- Base OMNIWeb de treino: **2018â€“2023**, com **52.553 linhas efetivas** apÃ³s feature engineering e remoÃ§Ã£o de linhas invÃ¡lidas
+- Dados de 2024 reservados separadamente para validaÃ§Ã£o, backtesting e replay
+- Sprint 0 cientÃ­fico aprovado:
   - `p25 = 0.0305`
   - `p50 = 0.0592`
   - `p75 = 0.1053`
@@ -42,31 +42,31 @@ O **OrbitalShield** organiza um pipeline de quatro camadas para transformar dado
 - Backtesting em evento de maio/2024:
   - **F1-macro = 0.8149**
   - **Recall classe 3 = 0.8919**
-  - **Lead time operacional: 240 horas** — o modelo emitiu alertas CRÍTICO sequenciais hora a hora desde 01/05, detectando o início da rampa de degradação 10 dias antes do pico de Kp=9 em 11/05 (horizonte de predição: t+1h)
+  - **Lead time operacional: 240 horas** â€” o modelo emitiu alertas CRÃTICO sequenciais hora a hora desde 01/05, detectando o inÃ­cio da rampa de degradaÃ§Ã£o 10 dias antes do pico de Kp=9 em 11/05 (horizonte de prediÃ§Ã£o: t+1h)
 
 ## Arquitetura
 
 ```text
 Dados NOAA/OMNIWeb
-    ↓
+    â†“
 Ingestion + Feature Engineering
-    ↓
+    â†“
 IPO (interno)
-    ↓
+    â†“
 XGBoost
-    ↓
+    â†“
 OGII (operacional)
-    ↓
+    â†“
 Dashboard Streamlit (calcula/visualiza OGII)
-    ↓
-risk_scores (SQLite) ← última inferência operacional no modo normal
-    ↓
+    â†“
+risk_scores (SQLite) â† Ãºltima inferÃªncia operacional no modo normal
+    â†“
 ingestion/mqtt_telemetry.py
-    ↓
-orbitalshield/alerts  →  ESP32 (orbital_shield.ino)
-                                ↓
-orbitalshield/esp32/telemetry  →  ingestion/mqtt_telemetry.py
-                                ↓
+    â†“
+orbitalshield/alerts  â†’  ESP32 (orbital_shield.ino)
+                                â†“
+orbitalshield/esp32/telemetry  â†’  ingestion/mqtt_telemetry.py
+                                â†“
                           esp32_telemetry (SQLite)
 ```
 
@@ -79,83 +79,96 @@ orbitalshield/esp32/telemetry  →  ingestion/mqtt_telemetry.py
 - MQTT (Paho)
 - ESP32 + Arduino IDE
 
-## Estrutura do repositório
+## Estrutura do repositÃ³rio
 
 ```text
 orbitalshield_gs/
-├── backtesting/
-│   ├── backtest_may2024.py
-│   └── results/
-├── dashboard/
-│   └── app.py
-├── data/
-│   └── reports/
-├── db/
-│   ├── connection.py
-│   └── models.py
-├── esp32/
-│   ├── orbital_shield.ino
-│   └── README.md
-├── experiments/
-├── features/
-│   ├── engineering.py
-│   └── ipo.py
-├── ingestion/
-│   ├── omniweb_loader.py
-│   ├── noaa_collector.py
-│   └── mqtt_telemetry.py
-├── model/
-│   ├── artifacts/
-│   ├── train.py
-│   └── predict.py
-├── research/
-│   └── ipo_definition.md
-├── sprint0/
-│   ├── 01_ipo_distribution.py
-│   └── thresholds.json
-├── validation/
-├── .env.example
-├── .gitignore
-├── .streamlit/
-│   └── config.toml
-├── setup.py
-└── README.md
+â”œâ”€â”€ backtesting/
+â”‚   â”œâ”€â”€ backtest_may2024.py
+â”‚   â””â”€â”€ results/
+â”œâ”€â”€ dashboard/
+â”‚   â””â”€â”€ app.py
+â”œâ”€â”€ data/
+â”‚   â””â”€â”€ reports/
+â”œâ”€â”€ db/
+â”‚   â”œâ”€â”€ connection.py
+â”‚   â””â”€â”€ models.py
+â”œâ”€â”€ esp32/
+â”‚   â”œâ”€â”€ orbital_shield.ino
+â”‚   â””â”€â”€ README.md
+â”œâ”€â”€ experiments/
+â”œâ”€â”€ features/
+â”‚   â”œâ”€â”€ engineering.py
+â”‚   â””â”€â”€ ipo.py
+â”œâ”€â”€ ingestion/
+â”‚   â”œâ”€â”€ omniweb_loader.py
+â”‚   â”œâ”€â”€ noaa_collector.py
+â”‚   â””â”€â”€ mqtt_telemetry.py
+â”œâ”€â”€ model/
+â”‚   â”œâ”€â”€ artifacts/
+â”‚   â”œâ”€â”€ train.py
+â”‚   â””â”€â”€ predict.py
+â”œâ”€â”€ research/
+â”‚   â””â”€â”€ ipo_definition.md
+â”œâ”€â”€ sprint0/
+â”‚   â”œâ”€â”€ 01_ipo_distribution.py
+â”‚   â””â”€â”€ thresholds.json
+â”œâ”€â”€ validation/
+â”œâ”€â”€ .env.example
+â”œâ”€â”€ .gitignore
+â”œâ”€â”€ .streamlit/
+â”‚   â””â”€â”€ config.toml
+â”œâ”€â”€ setup.py
+â””â”€â”€ README.md
 ```
 
-## Pré-requisitos
+## PrÃ©-requisitos
 
 - Python 3.11+
-- R 4.6+ para a projeção ARIMA de tendência Kp
-- SQLite via biblioteca padrão do Python
+- R 4.6+ para a projeÃ§Ã£o ARIMA de tendÃªncia Kp
+- SQLite via biblioteca padrÃ£o do Python
 
-## Instalação
+## InstalaÃ§Ã£o
 
 ```bash
 python -m venv .venv
-# Windows
-.venv\Scripts\activate
-# Linux/macOS
-source .venv/bin/activate
+```
 
+Windows PowerShell:
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+Windows CMD:
+```cmd
+.venv\Scripts\activate.bat
+```
+
+Linux/macOS:
+```bash
+source .venv/bin/activate
+```
+
+```bash
 pip install --upgrade pip
 pip install -r requirements.txt
 pip install -e .
 ```
 
-## Execução
+## ExecuÃ§Ã£o
 
-### 1. Inicialização do banco
+### 1. InicializaÃ§Ã£o do banco
 ```bash
 python -c "from db.connection import init_db; init_db()"
 ```
 
-### 2. Ingestão de dados
+### 2. IngestÃ£o de dados
 ```bash
 python ingestion/omniweb_loader.py
 python -c "from ingestion.omniweb_loader import load_historical; load_historical(2024, 2024)"
 ```
 
-### 3. Sprint 0 — Gate científico
+### 3. Sprint 0 â€” Gate cientÃ­fico
 ```bash
 python sprint0/01_ipo_distribution.py
 ```
@@ -165,31 +178,31 @@ python sprint0/01_ipo_distribution.py
 python model/train.py
 ```
 
-> O arquivo `model/artifacts/xgboost_model.joblib` não é versionado no GitHub.
-> Ele é gerado localmente por `python model/train.py`.
+> O arquivo `model/artifacts/xgboost_model.joblib` nÃ£o Ã© versionado no GitHub.
+> Ele Ã© gerado localmente por `python model/train.py`.
 
 ### 5. Backtesting
 ```bash
 python backtesting/backtest_may2024.py
 ```
 
-### 6. Projeção ARIMA — Tendência Kp 24h (R)
+### 6. ProjeÃ§Ã£o ARIMA â€” TendÃªncia Kp 24h (R)
 Execute da raiz do projeto:
 ```bash
 Rscript research/kp_arima_forecast.R
 ```
 
-O script instala/carrega os pacotes R necessários: `forecast`, `RSQLite`, `DBI`, `ggplot2` e `dplyr`.
+O script instala/carrega os pacotes R necessÃ¡rios: `forecast`, `RSQLite`, `DBI`, `ggplot2` e `dplyr`.
 
 ### 7. Dashboard
 ```bash
 streamlit run dashboard/app.py
 ```
 
-> No modo normal, o dashboard atualiza a última inferência em `risk_scores`.
+> No modo normal, o dashboard atualiza a Ãºltima inferÃªncia em `risk_scores`.
 > Caso a tabela esteja vazia, o bridge MQTT usa fallback `MODERADO`.
 
-### 8. Bridge MQTT (ESP32 ↔ banco ↔ ESP32)
+### 8. Bridge MQTT (ESP32 â†” banco â†” ESP32)
 ```bash
 python ingestion/mqtt_telemetry.py
 ```
@@ -197,50 +210,50 @@ python ingestion/mqtt_telemetry.py
 ### 9. Firmware ESP32
 Abra `esp32/orbital_shield.ino` na Arduino IDE.  
 Configure `WIFI_SSID` e `WIFI_PASSWORD` no sketch.  
-Para demonstração sem hardware físico: [Wokwi](https://wokwi.com/projects/new/esp32)
+Para demonstraÃ§Ã£o sem hardware fÃ­sico: [Wokwi](https://wokwi.com/projects/new/esp32)
 
-### Observação sobre artefatos locais
+### ObservaÃ§Ã£o sobre artefatos locais
 
-O banco `orbitalshield.db` e o modelo `xgboost_model.joblib` não são versionados.
-Eles são recriados pelos passos de inicialização, ingestão e treinamento para manter
-rastreabilidade e evitar versionar arquivos pesados ou sensíveis.
+O banco `orbitalshield.db` e o modelo `xgboost_model.joblib` nÃ£o sÃ£o versionados.
+Eles sÃ£o recriados pelos passos de inicializaÃ§Ã£o, ingestÃ£o e treinamento para manter
+rastreabilidade e evitar versionar arquivos pesados ou sensÃ­veis.
 
-## Organização por camadas
+## OrganizaÃ§Ã£o por camadas
 
-### Camada 1 — IPO
-- Definição interna do índice
-- Feature engineering orientado por física de clima espacial
-- Thresholds congelados após Sprint 0
+### Camada 1 â€” IPO
+- DefiniÃ§Ã£o interna do Ã­ndice
+- Feature engineering orientado por fÃ­sica de clima espacial
+- Thresholds congelados apÃ³s Sprint 0
 
-### Camada 2 — Modelo
+### Camada 2 â€” Modelo
 - Treinamento com XGBoost
-- Persistência de artefatos em `model/artifacts/`
+- PersistÃªncia de artefatos em `model/artifacts/`
 - Metadados de modelo e thresholds versionados
 
-### Camada 3 — OGII
-- Conversão da saída do modelo para índice operacional 0–100
-- Exposição para dashboard, telemetria e integrações
+### Camada 3 â€” OGII
+- ConversÃ£o da saÃ­da do modelo para Ã­ndice operacional 0â€“100
+- ExposiÃ§Ã£o para dashboard, telemetria e integraÃ§Ãµes
 
-### Camada 4 — Telemetria ESP32
-- Nó IoT que assina `orbitalshield/alerts` via MQTT
-- Simula degradação GNSS (HDOP, satélites, fix) proporcional ao OGII
+### Camada 4 â€” Telemetria ESP32
+- NÃ³ IoT que assina `orbitalshield/alerts` via MQTT
+- Simula degradaÃ§Ã£o GNSS (HDOP, satÃ©lites, fix) proporcional ao OGII
 - Publica `orbitalshield/esp32/telemetry` a cada 5s
-- Bridge Python lê o último OGII salvo em `risk_scores`, publica alertas MQTT e persiste telemetria em `esp32_telemetry` (SQLite)
+- Bridge Python lÃª o Ãºltimo OGII salvo em `risk_scores`, publica alertas MQTT e persiste telemetria em `esp32_telemetry` (SQLite)
 
-## Tópicos MQTT
+## TÃ³picos MQTT
 
-| Tópico | Direção | Payload |
+| TÃ³pico | DireÃ§Ã£o | Payload |
 |---|---|---|
-| `orbitalshield/alerts` | `mqtt_telemetry.py` → ESP32 | `{ "ogii": 82, "level": "CRÍTICO" }` |
-| `orbitalshield/esp32/telemetry` | ESP32 → `mqtt_telemetry.py` | `{ "hdop": 5.2, "satellites_visible": 5, ... }` |
+| `orbitalshield/alerts` | `mqtt_telemetry.py` â†’ ESP32 | `{ "ogii": 82, "level": "CRÃTICO" }` |
+| `orbitalshield/esp32/telemetry` | ESP32 â†’ `mqtt_telemetry.py` | `{ "hdop": 5.2, "satellites_visible": 5, ... }` |
 
-## Validação em três camadas
+## ValidaÃ§Ã£o em trÃªs camadas
 
 | Camada | O que valida | Resultado |
 |---|---|---|
-| Estatística | F1-macro, recall crítico no test set | 0.8149 / 0.8919 |
-| Operacional | OGII + recomendação RTK no dashboard | Antecipação de 240h |
-| Proxy físico | HDOP e satélites via ESP32 | Correlação com alert_level |
+| EstatÃ­stica | F1-macro, recall crÃ­tico no test set | 0.8149 / 0.8919 |
+| Operacional | OGII + recomendaÃ§Ã£o RTK no dashboard | AntecipaÃ§Ã£o de 240h |
+| Proxy fÃ­sico | HDOP e satÃ©lites via ESP32 | CorrelaÃ§Ã£o com alert_level |
 
 ## Integrantes do grupo
 
@@ -253,76 +266,77 @@ rastreabilidade e evitar versionar arquivos pesados ou sensíveis.
 | Elton Modesto de Souza Dias | elton.redes@hotmail.com | 572530 |
 
 
-## Segurança
+## SeguranÃ§a
 
-O projeto implementa práticas de segurança em múltiplas camadas:
+O projeto implementa prÃ¡ticas de seguranÃ§a em mÃºltiplas camadas:
 
-### Proteção de credenciais
-- Variáveis sensíveis (broker MQTT, caminhos, chaves) isoladas em `.env`
-- `.env` protegido pelo `.gitignore` — nunca versionado
-- `.env.example` documenta as variáveis sem expor valores reais
-- Validação de variáveis obrigatórias no startup via `db/connection.py`
+### ProteÃ§Ã£o de credenciais
+- VariÃ¡veis sensÃ­veis (broker MQTT, caminhos, chaves) isoladas em `.env`
+- `.env` protegido pelo `.gitignore` â€” nunca versionado
+- `.env.example` documenta as variÃ¡veis sem expor valores reais
+- ValidaÃ§Ã£o de variÃ¡veis obrigatÃ³rias no startup via `db/connection.py`
 
-### Separação de camadas
-- IPO é constructo interno — não exposto na interface ou em logs
+### SeparaÃ§Ã£o de camadas
+- IPO Ã© constructo interno â€” nÃ£o exposto na interface ou em logs
 - OGII calculado exclusivamente em `model/predict.py`
-- Artefatos do modelo (`.joblib`) no `.gitignore` — não versionados
+- Artefatos do modelo (`.joblib`) no `.gitignore` â€” nÃ£o versionados
 
 ### IoT / MQTT
-- Credenciais do broker via `.env` (nunca hardcoded em produção)
-- Payload ESP32 com `is_replay: true` — transparência de dados simulados
-- Tópicos com namespace dedicado (`orbitalshield/`)
+- Credenciais do broker via `.env` (nunca hardcoded em produÃ§Ã£o)
+- Payload ESP32 com `is_replay: true` â€” transparÃªncia de dados simulados
+- TÃ³picos com namespace dedicado (`orbitalshield/`)
 
 ### Dados e rastreabilidade
-- Test set maio/2024 usado uma única vez — resultados congelados
+- Test set maio/2024 usado uma Ãºnica vez â€” resultados congelados
 - Thresholds versionados em `sprint0/thresholds.json`
-- Banco SQLite local — dados não expostos a serviços externos
+- Banco SQLite local â€” dados nÃ£o expostos a serviÃ§os externos
 
-### Próximos passos de segurança (fase 2)
+### PrÃ³ximos passos de seguranÃ§a (fase 2)
 - TLS no broker MQTT (porta 8883)
-- Autenticação username/password no broker
-- Rate limiting no dashboard para deploy público
+- AutenticaÃ§Ã£o username/password no broker
+- Rate limiting no dashboard para deploy pÃºblico
 
-## Roadmap — Extensões Futuras
+## Roadmap â€” ExtensÃµes Futuras
 
-O OrbitalShield foi concebido para agricultura de precisão, mas o problema do clima espacial é mais amplo. O grupo identificou duas extensões naturais do sistema:
+O OrbitalShield foi concebido para agricultura de precisÃ£o, mas o problema do clima espacial Ã© mais amplo. O grupo identificou duas extensÃµes naturais do sistema:
 
-### Extensão 1 — Validação RBMC/IBGE (SunStrike)
+### ExtensÃ£o 1 â€” ValidaÃ§Ã£o RBMC/IBGE (SunStrike)
 
-A Rede Brasileira de Monitoramento Contínuo GPS do IBGE registrou deriva de posicionamento de até **8,2 metros** na estação CUIB (Cuiabá/MT) durante a tempestade de maio/2024. Esses dados RINEX são públicos e representam o **ground truth real** de degradação GNSS em solo brasileiro.
+A Rede Brasileira de Monitoramento ContÃ­nuo GPS do IBGE registrou deriva de posicionamento de atÃ© **8,2 metros** na estaÃ§Ã£o CUIB (CuiabÃ¡/MT) durante a tempestade de maio/2024. Esses dados RINEX sÃ£o pÃºblicos e representam o **ground truth real** de degradaÃ§Ã£o GNSS em solo brasileiro.
 
-A próxima versão do OrbitalShield integrará os dados RBMC/IBGE como validação física direta — substituindo o proxy ESP32 por medições reais de receptor geodésico, eliminando a principal limitação científica atual.
+A prÃ³xima versÃ£o do OrbitalShield integrarÃ¡ os dados RBMC/IBGE como validaÃ§Ã£o fÃ­sica direta â€” substituindo o proxy ESP32 por mediÃ§Ãµes reais de receptor geodÃ©sico, eliminando a principal limitaÃ§Ã£o cientÃ­fica atual.
 
-### Extensão 2 — OrbitalShield Rural (ConnectWindow)
+### ExtensÃ£o 2 â€” OrbitalShield Rural (ConnectWindow)
 
-Mais de **18 milhões de brasileiros** em regiões remotas (comunidades ribeirinhas, quilombolas, agricultores familiares) dependem de satélites tanto para GPS quanto para comunicação. Nessas regiões, a janela de sinal satelital é intermitente — e ninguém avisa quando ela chega.
+Mais de **18 milhÃµes de brasileiros** em regiÃµes remotas (comunidades ribeirinhas, quilombolas, agricultores familiares) dependem de satÃ©lites tanto para GPS quanto para comunicaÃ§Ã£o. Nessas regiÃµes, a janela de sinal satelital Ã© intermitente â€” e ninguÃ©m avisa quando ela chega.
 
-A extensão ConnectWindow integra ao OrbitalShield:
+A extensÃ£o ConnectWindow integra ao OrbitalShield:
 
-- **Simulador orbital** — calcula quando um satélite passa sobre uma coordenada usando dados TLE do Celestrak/NASA
-- **Fila inteligente** — prioriza mensagens por urgência (emergência médica → alerta climático → dados agrícolas → comunicação pessoal)
-- **Otimizador de janela** — dado X minutos de sinal e banda limitada, decide o que enviar primeiro
-- **Preditor com ML** — regressão linear treinada com histórico de janelas para prever duração e qualidade do próximo sinal
+- **Simulador orbital** â€” calcula quando um satÃ©lite passa sobre uma coordenada usando dados TLE do Celestrak/NASA
+- **Fila inteligente** â€” prioriza mensagens por urgÃªncia (emergÃªncia mÃ©dica â†’ alerta climÃ¡tico â†’ dados agrÃ­colas â†’ comunicaÃ§Ã£o pessoal)
+- **Otimizador de janela** â€” dado X minutos de sinal e banda limitada, decide o que enviar primeiro
+- **Preditor com ML** â€” regressÃ£o linear treinada com histÃ³rico de janelas para prever duraÃ§Ã£o e qualidade do prÃ³ximo sinal
 
-**Integração com o OGII:** quando o índice indica risco CRÍTICO E a janela de comunicação é curta, o sistema prioriza automaticamente mensagens de emergência médica e alertas de desastre — tecnologia espacial como ferramenta de inclusão digital.
+**IntegraÃ§Ã£o com o OGII:** quando o Ã­ndice indica risco CRÃTICO E a janela de comunicaÃ§Ã£o Ã© curta, o sistema prioriza automaticamente mensagens de emergÃªncia mÃ©dica e alertas de desastre â€” tecnologia espacial como ferramenta de inclusÃ£o digital.
 
 ### Impacto social ampliado
 
-| Público | Problema | Solução |
+| PÃºblico | Problema | SoluÃ§Ã£o |
 |---|---|---|
-| Agricultor de precisão | GPS degrada sem aviso | OGII + alerta 240h de antecipação |
-| Agricultor familiar remoto | Não sabe quando o sinal chega | ConnectWindow — fila priorizada |
-| Comunidades ribeirinhas | Emergências médicas sem comunicação | Mensagens de saúde priorizadas na janela |
-| Gestores de desastre | Alertas de enchente não chegam | Alertas climáticos no topo da fila |
+| Agricultor de precisÃ£o | GPS degrada sem aviso | OGII + alerta 240h de antecipaÃ§Ã£o |
+| Agricultor familiar remoto | NÃ£o sabe quando o sinal chega | ConnectWindow â€” fila priorizada |
+| Comunidades ribeirinhas | EmergÃªncias mÃ©dicas sem comunicaÃ§Ã£o | Mensagens de saÃºde priorizadas na janela |
+| Gestores de desastre | Alertas de enchente nÃ£o chegam | Alertas climÃ¡ticos no topo da fila |
 
-## Observações importantes
+## ObservaÃ§Ãµes importantes
 
-- Não versionar artefatos pesados ou arquivos sensíveis.
-- Não expor o IPO na interface de usuário.
-- Não recalibrar thresholds fora do processo formal do Sprint 0.
-- Não tratar AMAS como causalidade comprovada.
-- Payloads ESP32 com `is_replay: true` são dados de demonstração — não medição real de campo.
+- NÃ£o versionar artefatos pesados ou arquivos sensÃ­veis.
+- NÃ£o expor o IPO na interface de usuÃ¡rio.
+- NÃ£o recalibrar thresholds fora do processo formal do Sprint 0.
+- NÃ£o tratar AMAS como causalidade comprovada.
+- Payloads ESP32 com `is_replay: true` sÃ£o dados de demonstraÃ§Ã£o â€” nÃ£o mediÃ§Ã£o real de campo.
 
-## Licença
+## LicenÃ§a
 
-Uso acadêmico interno, conforme regras do projeto e da FIAP.
+Uso acadÃªmico interno, conforme regras do projeto e da FIAP.
+
