@@ -1,4 +1,4 @@
-﻿# OrbitalShield
+# OrbitalShield
 
 Sistema de previsÃ£o de risco GNSS para agricultura de precisÃ£o com base em clima espacial.
 
