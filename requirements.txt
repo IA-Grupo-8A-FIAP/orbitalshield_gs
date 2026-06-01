@@ -10,3 +10,7 @@ sqlalchemy>=2.0,<3.0
 paho-mqtt>=2.1,<3.0
 python-dotenv>=1.0,<2.0
 requests>=2.32,<3.0
+
+# Opcional: necessário apenas para regenerar os gráficos em experiments/shap_analysis.py.
+# Os artefatos SHAP usados pelo dashboard já estão versionados em experiments/.
+# shap>=0.45,<1.0

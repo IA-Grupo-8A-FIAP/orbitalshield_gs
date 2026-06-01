@@ -29,7 +29,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from db.connection import SessionLocal
-from db.models import SpaceWeatherRaw
+from db.models import SpaceWeatherRaw, RiskScore
 from model.predict import load_artifacts, predict_batch, ogii_to_alert
 
 # ─── Configuração da página ───────────────────────────────────────────────────
@@ -201,6 +201,36 @@ def load_recent_data(hours: int = 80) -> pd.DataFrame:
     } for r in rows])
     df["collected_at"] = pd.to_datetime(df["collected_at"], utc=True)
     return df.sort_values("collected_at").reset_index(drop=True)
+
+
+def save_latest_risk_score(row: pd.Series) -> str | None:
+    """Atualiza risk_scores com a última inferência operacional do dashboard."""
+    session = SessionLocal()
+    try:
+        scored_at = pd.to_datetime(row["collected_at"], utc=True).to_pydatetime()
+        alert = ogii_to_alert(float(row["ogii"]))
+        existing = (
+            session.query(RiskScore)
+            .filter(RiskScore.scored_at == scored_at)
+            .first()
+        )
+        if existing is None:
+            existing = RiskScore(scored_at=scored_at)
+            session.add(existing)
+
+        existing.ogii = float(row["ogii"])
+        existing.risk_class = int(row["ipo_class_pred"])
+        existing.risk_label = alert["level"]
+        existing.recommendation = alert["recommendation"]
+        existing.dominant_feature = "xgboost_probabilities"
+        existing.model_version = "v1.0"
+        session.commit()
+        return None
+    except Exception as exc:
+        session.rollback()
+        return f"MQTT: não foi possível atualizar risk_scores ({exc})"
+    finally:
+        session.close()
 
 @st.cache_data(show_spinner=False)
 def load_replay_data() -> pd.DataFrame:
@@ -383,7 +413,7 @@ with st.sidebar:
     Dados: NASA/OMNIWeb<br>
     Modelo: XGBoost v1.0<br>
     Treino: 2018–2023<br>
-    52.584 registros
+    52.553 linhas efetivas
     </div>
     """, unsafe_allow_html=True)
 
@@ -435,6 +465,11 @@ with tab1:
 
     # ── Card OGII principal ───────────────────────────────────────────────────
     last = display_df.iloc[-1]
+    if not replay:
+        risk_save_error = save_latest_risk_score(last)
+        if risk_save_error:
+            st.caption(risk_save_error)
+
     alert = ogii_to_alert(float(last["ogii"]))
     level = alert["level"]
     color = ogii_color(level)

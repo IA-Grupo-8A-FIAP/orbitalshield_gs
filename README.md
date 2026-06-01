@@ -30,8 +30,8 @@ O **OrbitalShield** organiza um pipeline de quatro camadas para transformar dado
 
 ## Resultados atuais
 
-- Base de treino OMNIWeb: **52.584 registros** (2018–2023)
-- Dados de 2024 usados separadamente para validação, backtesting e replay
+- Base OMNIWeb de treino: **2018–2023**, com **52.553 linhas efetivas** após feature engineering e remoção de linhas inválidas
+- Dados de 2024 reservados separadamente para validação, backtesting e replay
 - Sprint 0 científico aprovado:
   - `p25 = 0.0305`
   - `p50 = 0.0592`
@@ -57,7 +57,11 @@ XGBoost
     ↓
 OGII (operacional)
     ↓
-Dashboard Streamlit
+Dashboard Streamlit (calcula/visualiza OGII)
+    ↓
+risk_scores (SQLite) ← última inferência operacional no modo normal
+    ↓
+ingestion/mqtt_telemetry.py
     ↓
 orbitalshield/alerts  →  ESP32 (orbital_shield.ino)
                                 ↓
@@ -182,7 +186,10 @@ O script instala/carrega os pacotes R necessários: `forecast`, `RSQLite`, `DBI`
 streamlit run dashboard/app.py
 ```
 
-### 8. Bridge MQTT (ESP32 ↔ Dashboard)
+> No modo normal, o dashboard atualiza a última inferência em `risk_scores`.
+> Caso a tabela esteja vazia, o bridge MQTT usa fallback `MODERADO`.
+
+### 8. Bridge MQTT (ESP32 ↔ banco ↔ ESP32)
 ```bash
 python ingestion/mqtt_telemetry.py
 ```
@@ -218,14 +225,14 @@ rastreabilidade e evitar versionar arquivos pesados ou sensíveis.
 - Nó IoT que assina `orbitalshield/alerts` via MQTT
 - Simula degradação GNSS (HDOP, satélites, fix) proporcional ao OGII
 - Publica `orbitalshield/esp32/telemetry` a cada 5s
-- Bridge Python persiste dados em `esp32_telemetry` (SQLite)
+- Bridge Python lê o último OGII salvo em `risk_scores`, publica alertas MQTT e persiste telemetria em `esp32_telemetry` (SQLite)
 
 ## Tópicos MQTT
 
 | Tópico | Direção | Payload |
 |---|---|---|
-| `orbitalshield/alerts` | Dashboard → ESP32 | `{ "ogii": 82, "level": "CRÍTICO" }` |
-| `orbitalshield/esp32/telemetry` | ESP32 → Dashboard | `{ "hdop": 5.2, "satellites_visible": 5, ... }` |
+| `orbitalshield/alerts` | `mqtt_telemetry.py` → ESP32 | `{ "ogii": 82, "level": "CRÍTICO" }` |
+| `orbitalshield/esp32/telemetry` | ESP32 → `mqtt_telemetry.py` | `{ "hdop": 5.2, "satellites_visible": 5, ... }` |
 
 ## Validação em três camadas
 
