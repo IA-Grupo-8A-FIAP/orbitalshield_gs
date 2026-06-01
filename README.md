@@ -202,6 +202,7 @@ streamlit run dashboard/app.py
 
 > No modo normal, o dashboard atualiza a Ãºltima inferÃªncia em `risk_scores`.
 > Caso a tabela esteja vazia, o bridge MQTT usa fallback `MODERADO`.
+> Para a demo ESP32, abra o dashboard em modo normal antes da bridge MQTT para popular `risk_scores` com um OGII real.
 
 ### 8. Bridge MQTT (ESP32 â†” banco â†” ESP32)
 ```bash
