@@ -177,7 +177,10 @@ def run():
     logger.info("  ESP32 Telemetry → SQLite")
     logger.info("=" * 50)
 
-    client = mqtt.Client(client_id=MQTT_CLIENT_ID)
+    client = mqtt.Client(
+        mqtt.CallbackAPIVersion.VERSION1,
+        client_id=MQTT_CLIENT_ID,
+    )
     client.on_connect    = on_connect
     client.on_message    = on_message
     client.on_disconnect = on_disconnect

@@ -463,6 +463,10 @@ with tab1:
                 result_df["collected_at"] >= "2024-05-01"
             ].copy()
 
+        if display_df.empty:
+            st.error("Nenhuma linha com OGII válido. Verifique se o banco tem dados suficientes para calcular as features temporais.")
+            st.stop()
+
     # ── Card OGII principal ───────────────────────────────────────────────────
     last = display_df.iloc[-1]
     if not replay:

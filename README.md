@@ -109,7 +109,8 @@ orbitalshield_gs/
 â”‚   â”œâ”€â”€ train.py
 â”‚   â””â”€â”€ predict.py
 â”œâ”€â”€ research/
-â”‚   â””â”€â”€ ipo_definition.md
+â”‚   â”œâ”€â”€ ipo_definition.md
+â”‚   â””â”€â”€ kp_arima_forecast.R
 â”œâ”€â”€ sprint0/
 â”‚   â”œâ”€â”€ 01_ipo_distribution.py
 â”‚   â””â”€â”€ thresholds.json
