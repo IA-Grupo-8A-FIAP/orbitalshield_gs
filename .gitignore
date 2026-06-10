@@ -29,7 +29,6 @@ orbitalshield.db
 *.sqlite3
 
 # Model artifacts
-model/artifacts/*.joblib
 model/artifacts/*.pkl
 model/artifacts/*.pickle
 
