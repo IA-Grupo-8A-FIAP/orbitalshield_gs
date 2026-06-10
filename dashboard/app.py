@@ -955,10 +955,10 @@ with tab2:
         ---
 
         ### Extensão 1 — Validação RBMC/IBGE
-        A Rede Brasileira de Monitoramento Contínuo GPS do IBGE registrou deriva de
-        **8,2 metros** na estação CUIB (Cuiabá/MT) durante a tempestade de maio/2024.
-        Esses dados RINEX são públicos e representam o **ground truth real** de degradação
-        GNSS em solo brasileiro — a próxima camada de validação do sistema.
+        Dados RBMC/IBGE, incluindo estações como CUIB em Cuiabá/MT, representam o próximo 
+        passo natural para validação física da deriva GNSS em solo brasileiro durante eventos 
+        geomagnéticos — essa integração é roadmap da próxima versão. Nesta POC, esses dados 
+        ainda não foram incorporados ao pipeline.
 
         ---
 
